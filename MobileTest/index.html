@@ -1,0 +1,45 @@
+<html>
+<head>
+  <script type="text/javascript" src="//code.jquery.com/jquery-git.js"></script>
+  <style type="text/css">
+    .test-area {
+      width: 100px;
+      height: 100px;
+      background-color: green;
+      border: 2px;
+    }
+  </style>
+
+  <title></title>
+</head>
+
+<body>
+  <div class="test-area">
+</div>
+<div class="test-events">
+<ol class="test-events-list">
+</ol>
+</div>
+
+<script type="text/javascript">
+$(function(){
+  var area = $('.test-area');
+  var list = $('.test-events-list');
+  
+  area.click(handler('click'));
+  area.on('mouseover', handler('mouseover'));
+  area.on('mousedown', handler('mousedown'));
+  area.on('mouseup', handler('mouseup'));
+  area.on('touchstart', handler('touchstart'));
+  area.on('touchend', handler('touchend'));
+  
+  function handler(name) {
+    return function() {
+      list.append('<li>' + name + '</li>');
+    }
+  }
+});
+</script>
+
+
+</body></html>
