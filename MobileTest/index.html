@@ -16,6 +16,11 @@
 <body>
   <div class="test-area">
 </div>
+    <div>
+        <input type="text" name="username" value="" id="user-name" />
+        <input type="text" name="password" value="" id="password" />
+        <button>Test</button>
+    </div>
 <div class="test-events">
 <ol class="test-events-list">
 </ol>
@@ -32,6 +37,20 @@ $(function(){
   area.on('mouseup', handler('mouseup'));
   area.on('touchstart', handler('touchstart'));
   area.on('touchend', handler('touchend'));
+
+  var nameEl = $('#user-name');
+  nameEl.on('mouseover', handler('Username: mouseover'));
+  nameEl.on('mousedown', handler('Username: mousedown'));
+  nameEl.on('mouseup', handler('Username: mouseup'));
+  nameEl.on('touchstart', handler('Username: touchstart'));
+  nameEl.on('touchend', handler('Username: touchend'));
+
+  var nameEl = $('#password');
+  nameEl.on('mouseover', handler('Password: mouseover'));
+  nameEl.on('mousedown', handler('Password: mousedown'));
+  nameEl.on('mouseup', handler('Password: mouseup'));
+  nameEl.on('touchstart', handler('Password: touchstart'));
+  nameEl.on('touchend', handler('Password: touchend'));
   
   function handler(name) {
     return function() {
