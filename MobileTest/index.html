@@ -10,6 +10,40 @@
     }
   </style>
 
+    <script>
+        (function Start(){
+            var area = $('.test-area');
+            var list = $('.test-events-list');
+  
+            area.click(handler('click'));
+            area.on('mouseover', handler('mouseover'));
+            area.on('mousedown', handler('mousedown'));
+            area.on('mouseup', handler('mouseup'));
+            area.on('touchstart', handler('touchstart'));
+            area.on('touchend', handler('touchend'));
+
+            var nameEl = $('#user-name');
+            nameEl.on('mouseover', handler('Username: mouseover'));
+            nameEl.on('mousedown', handler('Username: mousedown'));
+            nameEl.on('mouseup', handler('Username: mouseup'));
+            nameEl.on('touchstart', handler('Username: touchstart'));
+            nameEl.on('touchend', handler('Username: touchend'));
+
+            var nameEl = $('#password');
+            nameEl.on('mouseover', handler('Password: mouseover'));
+            nameEl.on('mousedown', handler('Password: mousedown'));
+            nameEl.on('mouseup', handler('Password: mouseup'));
+            nameEl.on('touchstart', handler('Password: touchstart'));
+            nameEl.on('touchend', handler('Password: touchend'));
+  
+            function handler(name) {
+                return function() {
+                    list.append('<li>' + name + '</li>');
+                }
+            }
+        })();
+    </script>
+
   <title></title>
 </head>
 
@@ -26,39 +60,6 @@
 </ol>
 </div>
 
-<script type="text/javascript">
-$(function(){
-  var area = $('.test-area');
-  var list = $('.test-events-list');
-  
-  area.click(handler('click'));
-  area.on('mouseover', handler('mouseover'));
-  area.on('mousedown', handler('mousedown'));
-  area.on('mouseup', handler('mouseup'));
-  area.on('touchstart', handler('touchstart'));
-  area.on('touchend', handler('touchend'));
-
-  var nameEl = $('#user-name');
-  nameEl.on('mouseover', handler('Username: mouseover'));
-  nameEl.on('mousedown', handler('Username: mousedown'));
-  nameEl.on('mouseup', handler('Username: mouseup'));
-  nameEl.on('touchstart', handler('Username: touchstart'));
-  nameEl.on('touchend', handler('Username: touchend'));
-
-  var nameEl = $('#password');
-  nameEl.on('mouseover', handler('Password: mouseover'));
-  nameEl.on('mousedown', handler('Password: mousedown'));
-  nameEl.on('mouseup', handler('Password: mouseup'));
-  nameEl.on('touchstart', handler('Password: touchstart'));
-  nameEl.on('touchend', handler('Password: touchend'));
-  
-  function handler(name) {
-    return function() {
-      list.append('<li>' + name + '</li>');
-    }
-  }
-});
-</script>
 
 
 </body></html>
