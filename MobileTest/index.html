@@ -28,6 +28,7 @@
             nameEl.on('mouseup', handler('Username: mouseup'));
             nameEl.on('touchstart', handler('Username: touchstart'));
             nameEl.on('touchend', handler('Username: touchend'));
+            nameEl.on('click', handler('Username: click'));
 
             var nameEl = $('#password');
             nameEl.on('mouseover', handler('Password: mouseover'));
@@ -35,6 +36,7 @@
             nameEl.on('mouseup', handler('Password: mouseup'));
             nameEl.on('touchstart', handler('Password: touchstart'));
             nameEl.on('touchend', handler('Password: touchend'));
+            nameEl.on('click', handler('Password: click'));
   
             function handler(name) {
                 return function() {
