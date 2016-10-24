@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        div {
+            width: 1080px;
+            height: 1920px;
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, grey 1px, transparent 1px), linear-gradient(to bottom, grey 1px, transparent 1px);
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+</head>
+<body>
+    <button>Start</button>
+    <div></div>
+
+    <script>
+        $(function() {
+            $(document.documentElement).on('keydown', function (e) {
+                if (e.which != 49)
+                    return;
+                StartTest();
+
+                e.preventDefault();
+                e.stopPropogation();
+            });
+            $('button').on('click', StartTest);
+
+            function StartTest() {
+                window.scrollTo(0, 0);
+                for (var y = 0 ; ; y += 13) {
+                    window.scrollTo(0, y);
+                    var realY = window.scrollY;
+                    for (var x = 0 ; ; x += 13) {
+                        window.scrollTo(x, realY);
+                        var realX = window.scrollX;
+                        if (realY != window.scrollY) {
+                            var message = 'Hit the case!!! realY: ' + realY + ', window.scrollY: ' + window.scrollY;
+                            $('div').append('<p>' + message + '</p>');
+                            console.log(message);
+                            realY = window.scrollY;
+                        }
+                        if (realX !== x) {
+                            if (realY != y) {
+                                console.log('end');
+                                return;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        });       
+    </script>
+</body>
+</html>
