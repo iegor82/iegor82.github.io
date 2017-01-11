@@ -1,6 +1,14 @@
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   <script type="text/javascript" src="//code.jquery.com/jquery-git.js"></script>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  
   <style type="text/css">
     .test-area {
       width: 100px;
@@ -14,17 +22,48 @@
 </head>
 
 <body>
-  <div class="test-area">
-</div>
-    <div>
-        <input type="text" name="username" value="" id="user-name" />
-        <input type="text" name="password" value="" id="password" />
-        <button>Test</button>
+    <div class="container">
+        <div class="jumbotron">
+            <h3>Mobile device info:</h3>
+            <div class="row">
+                <div class="col-xs-3 col-md-3">
+                    User Agent:
+                </div>
+                <div class="col-xs-9 col-md-5"></div>            
+            </div>
+            <div class="row">
+                <div class="col-xs-3 col-md-3">
+                    Resolution:
+                </div>
+                <div class="col-xs-9 col-md-5"></div>            
+            </div>
+            <div class="row">
+                <div class="col-xs-3 col-md-3">
+                    Viewport:
+                </div>
+                <div class="col-xs-9 col-md-5"></div>            
+            </div>
+            <div class="row">
+                <div class="col-xs-3 col-md-3">
+                    Device Pixel Ratio:
+                </div>
+                <div class="col-xs-9 col-md-5"></div>            
+            </div>
+        </div>        
+        
+        <div class="test-area">
+        </div>
+        <div>
+            <input type="text" name="username" value="" id="user-name" />
+            <input type="text" name="password" value="" id="password" />
+            <button>Test</button>
+        </div>
+        
+        <div class="test-events">
+            <ol class="test-events-list">
+            </ol>
+        </div>
     </div>
-<div class="test-events">
-<ol class="test-events-list">
-</ol>
-</div>
     <script>
         (function Start(){
             var area = $('.test-area');
@@ -52,6 +91,12 @@
             nameEl.on('touchstart', handler('Password: touchstart'));
             nameEl.on('touchend', handler('Password: touchend'));
             nameEl.on('click', handler('Password: click'));
+            
+            var values = $('.jumbotron .col-md-5');
+            $(values[0]).html(window.navigator.userAgent);
+            $(values[1]).html(screen.width + 'x' + screen.height);
+            $(values[2]).html(window.innerWidth + 'x' + window.innerHeight);
+            $(values[3]).html(window.devicePixelRatio);
 
             function handler(name) {
                 return function() {
