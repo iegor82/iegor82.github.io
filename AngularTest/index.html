@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>  
+    <head>
+        <title>Angular Test</title>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>  
+    </head>
+    <body ng-app="">
+        <form name="ValidationForm" onsubmit="return false">
+            <input type="text" name="UserName" ng-model="UserName" required ng-model-options="{ updateOn: 'blur' }" />
+            <input type="email" name="UserMail" ng-model="UserMail" required ng-model-options="{ updateOn: 'blur' }" />
+            <p>Is user name valid? - {{ValidationForm.UserName.$valid}}</p>
+            <p>Is user email valid? - {{ValidationForm.UserMail.$valid}}</p>
+            <p>Is entire form valid? - {{ValidationForm.$valid}}</p>
+        </form>
+    </body>
+</html>
