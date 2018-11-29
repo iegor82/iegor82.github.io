@@ -1,41 +1,51 @@
 <html>
-
-<head>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script>
-        function printObject(obj) {
-            var str = JSON.stringify(obj, null, 4);
-            $('ul').append($('<li></li>').html(str));
-        }
-        function log(text) {
-            $('ul').append($('<li></li>').html(text));
-        }
-    </script>
-    <style>
-        ul {
-            list-style: none;
-        }
-
-        li {
-            margin: 20px 0px 20px 0px;
-        }
-
-        iframe {
-            margin: 100 0 0 100;
-        }
-    </style>
-</head>
-
-<body>
-    <input type='text' id='test' />
-    <ul></ul>
-    <script>
-        $('input').on('keydown', function (a) {
-            let b = a.which || a.keyCode;
-            log('keyCode = ' + b);
-            return a.ctrlKey ? !0 : !a.shiftKey && !a.altKey && !a.ctrlKey && b >= 48 && 57 >= b || b >= 96 && 105 >= b || 8 == b || 9 == b || 13 == b || 35 == b || 36 == b || 37 == b || 39 == b || 46 == b || 45 == b ? !0 : !1
-        });
-    </script>
-</body>
-
-</html>
+    
+    <head>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+        <script>
+            function printObject(obj) {
+                var str = JSON.stringify(obj, null, 4);
+                $('ul').append($('<li></li>').html(str));
+            }
+            function log(text) {
+                $('ul').append($('<li></li>').html(text));
+            }
+        </script>
+        <style>
+            ul {
+                list-style: none;
+            }
+    
+            li {
+                margin: 20px 0px 20px 0px;
+            }
+    
+            iframe {
+                margin: 100 0 0 100;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <input type='text' id='test' /><br />
+        <button>Reset</button>
+        <ul></ul>
+        <script>
+            $('button').on('click', function() {
+                $('ul').empty();
+            });
+            $('input').on('keydown', function (a) {
+                var b = a.which || a.keyCode;
+                log('(keydown) keyCode = ' + b + ' ctrl = ' + a.ctrlKey + ' alt = ' + a.altKey + ' shift = ' + a.shiftKey);
+                return a.ctrlKey ? !0 : !a.shiftKey && !a.altKey && !a.ctrlKey && b >= 48 && 57 >= b || b >= 96 && 105 >= b || 8 == b || 9 == b || 13 == b || 35 == b || 36 == b || 37 == b || 39 == b || 46 == b || 45 == b ? !0 : !1
+            }).on('keypress', function (a) {
+                var b = a.which || a.keyCode;
+                log('(keypress) keyCode = ' + b + ' char = ' + a.charCode + ' ctrl = ' + a.ctrlKey + ' alt = ' + a.altKey + ' shift = ' + a.shiftKey);
+            }).on('keyup', function (a) {
+                var b = a.which || a.keyCode;
+                log('(keyup) keyCode = ' + b + ' ctrl = ' + a.ctrlKey + ' alt = ' + a.altKey + ' shift = ' + a.shiftKey);
+            });
+        </script>
+    </body>
+    
+    </html>
