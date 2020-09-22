@@ -1,0 +1,15 @@
+<html>
+  <head><title>Test</title></head>
+  <body>
+    <p>Static Text</p>
+    <script>
+      (function() {
+        setTimeout(() => {
+          const p = document.createElement('p');
+          p.innerHTML = "Dynamic Text";
+          document.body.append(p);
+        }, 5000);
+      })()
+    </script>
+  </body>
+</html>
