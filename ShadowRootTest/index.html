@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Root</title>
+</head>
+<body>
+  <div></div>
+  <script>
+    (function() {
+      const div = document.querySelector('div');
+      const shadow = div.attachShadow({mode: 'open'});
+      shadow.append(document.createElement('textarea'));
+    })();
+  </script>
+</body>
+</html>
