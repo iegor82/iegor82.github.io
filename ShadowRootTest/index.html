@@ -12,6 +12,22 @@
       const div = document.querySelector('div');
       const shadow = div.attachShadow({mode: 'open'});
       shadow.append(document.createElement('textarea'));
+      shadow.append(document.createElement('br'));
+
+      const select = document.createElement('select');
+
+      const opt1 = document.createElement('option');
+      opt1.text = opt1.value = 'Option 1';
+      const opt2 = document.createElement('option');
+      opt2.text = opt2.value = 'Option 2';
+      const opt3 = document.createElement('option');
+      opt3.text = opt3.value = 'Option 3';
+
+      select.add(opt1);
+      select.add(opt2);
+      select.add(opt3);
+
+      shadow.append(select);
     })();
   </script>
 </body>
