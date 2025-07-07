@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Out of Process Iframe Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        iframe { width: 800px; height: 600px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Out of Process Iframe Demo</h1>
+    <p>
+        The iframe below loads content from another origin, which browsers typically run in a separate process for security (OOPIF).
+    </p>
+    <iframe src="https://echo.websocket.org/.ws" sandbox="allow-scripts allow-same-origin"></iframe>
+    <iframe src="https://badssl.com/" sandbox="allow-scripts allow-same-origin"></iframe>
+    <hr>
+    <iframe src="https://www.dotcom-monitor.com/"></iframe>
+</body>
+</html>
