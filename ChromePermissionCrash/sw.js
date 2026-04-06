@@ -11,6 +11,9 @@ self.addEventListener('fetch', (event) => {
             new Response('Text from service worker', {headers: { 'Content-Type': 'text/plain' }})
         );
     }
+    if (event.request.url.endsWith('/test2/')) {
+        event.respondWith(fetch('test2.txt'));
+    }
 });
 
 

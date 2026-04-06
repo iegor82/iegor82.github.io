@@ -42,8 +42,21 @@ const startTest = async () => {
     }
 }
 
+const startTest2 = async () => {
+    const reply = await fetch('/ChromePermissionCrash/test2/');
+    const p = document.getElementById('result');
+    if (reply) {
+        p.innerHTML = await reply.text();
+    } else {
+        p.innerHTML = 'Error';
+    }
+}
+
 const registerBtn = document.getElementById('register-btn');
 registerBtn.addEventListener('click', register);
 
 const testBtn = document.getElementById('test-btn');
 testBtn.addEventListener('click', startTest);
+
+const testBtn2 = document.getElementById('test-btn2');
+testBtn2.addEventListener('click', startTest2);
