@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Iframe / OOPIF Stress Test</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 1em; }
+    h1 { margin-bottom: 0.2em; }
+    #controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75em 1.5em;
+        align-items: center;
+        padding: 0.75em;
+        background: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    #controls label { display: flex; flex-direction: column; font-size: 12px; gap: 2px; }
+    #controls input, #controls select { width: 8em; }
+    #controls button { padding: 0.4em 1em; }
+    #status { font-size: 12px; white-space: pre; }
+    #warning { color: #a00; font-size: 12px; max-width: 30em; }
+    #frameGrid {
+        margin-top: 1em;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 4px;
+    }
+    .frameWrap { display: flex; flex-direction: column; }
+    .frameWrap iframe { width: 100%; height: 100px; border: 1px solid #999; }
+    .frameWrap .label { font-size: 10px; color: #666; text-align: center; }
+</style>
+</head>
+<body>
+<h1>Iframe / OOPIF Stress Test</h1>
+<p>
+    Generates a large number of iframes for stress-testing frame/process handling.
+    "Sandboxed (opaque origin)" frames use <code>sandbox</code> without <code>allow-same-origin</code>,
+    which gives each frame a unique opaque origin distinct from the embedder and from every sibling
+    &mdash; Chromium's Site Isolation can put these in their own renderer process
+    (see <code>chrome://flags/#isolate-sandboxed-iframes</code>), producing OOPIFs without any network dependency.
+    "Real cross-origin" frames load actual third-party sites for genuine cross-site OOPIFs and are capped
+    to avoid hammering external servers.
+</p>
+<div id="controls">
+    <label>Total iframes
+        <input type="number" id="count" value="200" min="1" max="20000">
+    </label>
+    <label>Frame type
+        <select id="frameType">
+            <option value="sandboxed-opaque">Sandboxed (opaque origin, OOPIF candidate)</option>
+            <option value="sandboxed-same-origin">Sandboxed + allow-same-origin (in-process)</option>
+            <option value="plain-srcdoc">Plain srcdoc (in-process)</option>
+            <option value="cross-origin">Real cross-origin (network, capped)</option>
+        </select>
+    </label>
+    <label>Nesting depth
+        <input type="number" id="depth" value="1" min="1" max="5">
+    </label>
+    <label>Nested children/level
+        <input type="number" id="nestedChildren" value="3" min="1" max="10">
+    </label>
+    <label>Batch size
+        <input type="number" id="batchSize" value="25" min="1" max="500">
+    </label>
+    <button id="generateBtn">Generate</button>
+    <button id="clearBtn">Clear</button>
+    <div id="status"></div>
+</div>
+<div id="warning"></div>
+<div id="frameGrid"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    var CAP = 20000; // hard safety cap on total frames (including nested), regardless of requested count
+    var MAX_CROSS_ORIGIN = 20; // real network requests are capped low and reused, not one-per-frame
+
+    var CROSS_ORIGIN_SOURCES = [
+        'https://example.com/',
+        'https://example.org/',
+        'https://example.net/',
+        'https://www.iana.org/domains/reserved',
+        'https://info.cern.ch/'
+    ];
+
+    var frameGrid = document.getElementById('frameGrid');
+    var statusEl = document.getElementById('status');
+    var warningEl = document.getElementById('warning');
+    var generateBtn = document.getElementById('generateBtn');
+    var clearBtn = document.getElementById('clearBtn');
+
+    var generatedCount = 0;
+    var capped = false;
+
+    function escapeAttr(s) {
+        return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function colorForIndex(i) {
+        var hue = (i * 47) % 360;
+        return 'hsl(' + hue + ' 70% 88%)';
+    }
+
+    // Returns a full HTML document string for the content of one frame, recursively
+    // embedding nested frames (as literal, correctly-escaped srcdoc attributes) up to `depth`.
+    function buildDocumentHtml(index, depth, frameType, nestedChildren) {
+        var childrenHtml = '';
+        if (depth > 1 && !capped) {
+            for (var c = 0; c < nestedChildren; c++) {
+                if (generatedCount >= CAP) { capped = true; break; }
+                generatedCount++;
+                var childIndex = generatedCount;
+                var childDoc = buildDocumentHtml(childIndex, depth - 1, frameType, nestedChildren);
+                var attrs = frameAttrString(frameType, childIndex);
+                childrenHtml += '<iframe ' + attrs + ' srcdoc="' + escapeAttr(childDoc) + '"></iframe>';
+            }
+        }
+        return '<!DOCTYPE html><html><head><style>' +
+            'body{margin:2px;font:9px monospace;background:' + colorForIndex(index) + ';overflow:auto}' +
+            '.kids{display:flex;flex-wrap:wrap;gap:2px}' +
+            'iframe{width:60px;height:45px;border:1px solid #888}' +
+            '</style></head><body>#' + index + '<div class="kids">' + childrenHtml + '</div></body></html>';
+    }
+
+    function frameAttrString(frameType, index) {
+        var sandbox = '';
+        if (frameType === 'sandboxed-opaque') sandbox = 'sandbox="allow-scripts"';
+        else if (frameType === 'sandboxed-same-origin') sandbox = 'sandbox="allow-scripts allow-same-origin"';
+        return sandbox + ' loading="eager" title="frame ' + index + '"';
+    }
+
+    function updateStatus(done, total, warned) {
+        statusEl.textContent = 'Generated ' + done + ' / ' + total + ' top-level frames' +
+            (warned ? ' (nested-frame cap reached, some nesting truncated)' : '');
+    }
+
+    function clearGrid() {
+        frameGrid.textContent = '';
+        generatedCount = 0;
+        capped = false;
+        warningEl.textContent = '';
+        statusEl.textContent = '';
+    }
+
+    function generate() {
+        clearGrid();
+
+        var count = Math.max(1, Math.min(CAP, parseInt(document.getElementById('count').value, 10) || 1));
+        var frameType = document.getElementById('frameType').value;
+        var depth = Math.max(1, Math.min(5, parseInt(document.getElementById('depth').value, 10) || 1));
+        var nestedChildren = Math.max(1, Math.min(10, parseInt(document.getElementById('nestedChildren').value, 10) || 1));
+        var batchSize = Math.max(1, Math.min(500, parseInt(document.getElementById('batchSize').value, 10) || 25));
+
+        if (frameType === 'cross-origin' && count > MAX_CROSS_ORIGIN) {
+            warningEl.textContent = 'Real cross-origin frames are capped at ' + MAX_CROSS_ORIGIN +
+                ' to avoid overloading third-party servers; sources are cycled.';
+            count = MAX_CROSS_ORIGIN;
+        }
+
+        generateBtn.disabled = true;
+        clearBtn.disabled = true;
+
+        var i = 0;
+        var startTime = performance.now();
+
+        function buildBatch() {
+            var end = Math.min(count, i + batchSize);
+            var fragment = document.createDocumentFragment();
+
+            for (; i < end; i++) {
+                if (generatedCount >= CAP) { capped = true; break; }
+                generatedCount++;
+                var index = generatedCount;
+
+                var wrap = document.createElement('div');
+                wrap.className = 'frameWrap';
+
+                var iframe = document.createElement('iframe');
+                iframe.title = 'frame ' + index;
+
+                if (frameType === 'cross-origin') {
+                    iframe.src = CROSS_ORIGIN_SOURCES[index % CROSS_ORIGIN_SOURCES.length];
+                } else {
+                    if (frameType === 'sandboxed-opaque') iframe.setAttribute('sandbox', 'allow-scripts');
+                    else if (frameType === 'sandboxed-same-origin') iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+                    iframe.srcdoc = buildDocumentHtml(index, depth, frameType, nestedChildren);
+                }
+
+                var label = document.createElement('div');
+                label.className = 'label';
+                label.textContent = '#' + index;
+
+                wrap.appendChild(iframe);
+                wrap.appendChild(label);
+                fragment.appendChild(wrap);
+            }
+
+            frameGrid.appendChild(fragment);
+            updateStatus(Math.min(i, count), count, capped);
+
+            if (i < count && !capped) {
+                requestAnimationFrame(buildBatch);
+            } else {
+                var elapsed = (performance.now() - startTime).toFixed(0);
+                statusEl.textContent += ' (' + elapsed + ' ms, ' + generatedCount + ' total frames incl. nested)';
+                generateBtn.disabled = false;
+                clearBtn.disabled = false;
+            }
+        }
+
+        requestAnimationFrame(buildBatch);
+    }
+
+    generateBtn.addEventListener('click', generate);
+    clearBtn.addEventListener('click', clearGrid);
+})();
+</script>
+</body>
+</html>
