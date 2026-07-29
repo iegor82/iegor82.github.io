@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HTTP 404 Resource Test</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 1em; }
+    h1 { margin-bottom: 0.2em; }
+    h2 { margin-top: 1.5em; border-bottom: 1px solid #ddd; padding-bottom: 0.2em; }
+    p.desc { max-width: 40em; color: #333; }
+    table { border-collapse: collapse; width: 100%; margin-top: 0.75em; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; font-size: 13px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; }
+    td.url { font-family: monospace; word-break: break-all; }
+    .pending { color: #888; }
+    .ok404 { color: #0a7d00; font-weight: bold; }
+    .unexpected { color: #a00; font-weight: bold; }
+    #static-preview { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; margin-top: 0.75em; }
+    #static-preview figure { margin: 0; border: 1px dashed #bbb; padding: 6px; font-size: 11px; color: #666; text-align: center; }
+    #static-preview img, #static-preview video, #static-preview iframe, #static-preview object { display: block; width: 140px; height: 90px; background: #f7f7f7; }
+    #hidden-elements { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+    /* referenced-but-missing background image / font, declared directly in CSS (not via JS) */
+    #bg-probe { width: 16px; height: 16px; background-image: url('./missing/background.png'); }
+    @font-face {
+        font-family: 'Missing404Font';
+        src: url('./missing/font.woff2') format('woff2');
+    }
+    #font-probe { font-family: 'Missing404Font', sans-serif; }
+</style>
+<!-- Static markup resources: ordinary <link>/<script> tags the browser fetches during parsing,
+     with no JS involved in triggering the request itself. -->
+<link id="res-favicon" rel="icon" href="./missing/favicon.ico">
+<link id="res-css" rel="stylesheet" href="./missing/style.css">
+<script id="res-script" src="./missing/script.js"></script>
+</head>
+<body>
+<h1>HTTP 404 Resource Test</h1>
+<p class="desc">
+    Loads a variety of resource types from URLs under <code>./missing/</code> that are guaranteed
+    not to exist. Every request below should resolve to a real HTTP 404 from the server &mdash;
+    check the tables and the DevTools Network tab to confirm.
+</p>
+
+<h2>Loaded via static HTML markup</h2>
+<p class="desc">
+    These use ordinary <code>&lt;link&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;img&gt;</code>,
+    <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;iframe&gt;</code>,
+    <code>&lt;object&gt;</code> tags and CSS <code>@font-face</code> / <code>background-image</code>
+    declarations written directly in the page source (see "View Source") &mdash; the browser
+    requests them on its own, with no JavaScript triggering the fetch. The favicon and stylesheet
+    <code>&lt;link&gt;</code> tags and the <code>&lt;script&gt;</code> tag are in <code>&lt;head&gt;</code>
+    above; the rest are previewed below (expect broken-image icons / empty players).
+</p>
+<div id="static-preview">
+    <figure>
+        <img id="res-img" src="./missing/image.png" alt="missing image">
+        <figcaption>&lt;img&gt;</figcaption>
+    </figure>
+    <figure>
+        <video id="res-video" src="./missing/video.mp4" controls></video>
+        <figcaption>&lt;video&gt;</figcaption>
+    </figure>
+    <figure>
+        <audio id="res-audio" src="./missing/audio.mp3" controls style="width:140px;height:auto;"></audio>
+        <figcaption>&lt;audio&gt;</figcaption>
+    </figure>
+    <figure>
+        <iframe id="res-iframe" src="./missing/frame.html"></iframe>
+        <figcaption>&lt;iframe&gt;</figcaption>
+    </figure>
+    <figure>
+        <object id="res-object" data="./missing/object-data.pdf" type="application/pdf"></object>
+        <figcaption>&lt;object&gt;</figcaption>
+    </figure>
+    <figure>
+        <div id="bg-probe"></div>
+        <figcaption>CSS background-image</figcaption>
+    </figure>
+    <figure>
+        <span id="font-probe">Aa</span>
+        <figcaption>@font-face</figcaption>
+    </figure>
+</div>
+<table id="staticResults">
+    <thead>
+        <tr><th>Resource type</th><th>URL</th><th>Outcome</th></tr>
+    </thead>
+    <tbody id="staticResultsBody"></tbody>
+</table>
+
+<h2>Loaded via JavaScript APIs</h2>
+<p class="desc">
+    These have no plain-markup equivalent &mdash; they can only be requested from script:
+    <code>fetch()</code>, <code>XMLHttpRequest</code>, dynamic <code>import()</code>, and
+    <code>Worker</code>.
+</p>
+<table id="apiResults">
+    <thead>
+        <tr><th>Resource type</th><th>URL</th><th>Outcome</th></tr>
+    </thead>
+    <tbody id="apiResultsBody"></tbody>
+</table>
+
+<div id="hidden-elements"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    var rows = {};
+
+    function addRow(tbody, id, type, url) {
+        var tr = document.createElement('tr');
+        var tdType = document.createElement('td');
+        tdType.textContent = type;
+        var tdUrl = document.createElement('td');
+        tdUrl.className = 'url';
+        tdUrl.textContent = url;
+        var tdStatus = document.createElement('td');
+        tdStatus.className = 'pending';
+        tdStatus.textContent = 'pending...';
+        tr.appendChild(tdType);
+        tr.appendChild(tdUrl);
+        tr.appendChild(tdStatus);
+        tbody.appendChild(tr);
+        rows[id] = tdStatus;
+    }
+
+    function setStatus(id, text, ok) {
+        var cell = rows[id];
+        if (!cell) return;
+        cell.textContent = text;
+        cell.className = ok ? 'ok404' : 'unexpected';
+    }
+
+    // Cross-check the actual HTTP status code for a URL via fetch, independent of how the
+    // triggering element reports success/failure (elements like <img>/<script> only expose
+    // load vs. error, not the status code).
+    function verifyStatus(id, url) {
+        fetch(url, { cache: 'no-store' }).then(function (resp) {
+            if (resp.status === 404) {
+                setStatus(id, '404 confirmed (HTTP ' + resp.status + ')', true);
+            } else {
+                setStatus(id, 'unexpected HTTP ' + resp.status, false);
+            }
+        }).catch(function (err) {
+            setStatus(id, 'fetch failed: ' + err.message, false);
+        });
+    }
+
+    var base = './missing/';
+    var staticBody = document.getElementById('staticResultsBody');
+    var apiBody = document.getElementById('apiResultsBody');
+
+    // ---- Static markup resources: elements already exist in the DOM from parsing the HTML
+    // above; we just observe their load/error events and cross-check the HTTP status. ----
+
+    function watchStatic(id, type, url, loadMeansSuccess) {
+        addRow(staticBody, id, type, url);
+        var el = document.getElementById(id);
+        el.addEventListener('error', function () { verifyStatus(id, url); });
+        el.addEventListener('load', function () {
+            if (loadMeansSuccess) {
+                setStatus(id, 'unexpectedly loaded', false);
+            } else {
+                // e.g. <iframe>/<object> fire "load" even for an error-page response body,
+                // so confirm the real status via fetch rather than trusting the event.
+                verifyStatus(id, url);
+            }
+        });
+    }
+
+    watchStatic('res-favicon', 'Favicon (<link rel=icon>, in <head>)', base + 'favicon.ico', true);
+    watchStatic('res-css', 'Stylesheet (<link>, in <head>)', base + 'style.css', true);
+    watchStatic('res-script', 'Script (<script src>, in <head>)', base + 'script.js', true);
+    watchStatic('res-img', 'Image (<img>)', base + 'image.png', true);
+    watchStatic('res-video', 'Video (<video>)', base + 'video.mp4', true);
+    watchStatic('res-audio', 'Audio (<audio>)', base + 'audio.mp3', true);
+    watchStatic('res-iframe', 'Iframe (<iframe>)', base + 'frame.html', false);
+    watchStatic('res-object', 'Object (<object>)', base + 'object-data.pdf', false);
+
+    // CSS background-image and @font-face are declared directly in <style> above; there's no
+    // DOM load/error event for them, so just confirm the underlying HTTP status.
+    addRow(staticBody, 'bg', 'CSS background-image', base + 'background.png');
+    verifyStatus('bg', base + 'background.png');
+
+    addRow(staticBody, 'font', 'Font (@font-face)', base + 'font.woff2');
+    if (document.fonts) {
+        document.fonts.load('12px Missing404Font').then(function () {
+            verifyStatus('font', base + 'font.woff2');
+        }).catch(function () {
+            verifyStatus('font', base + 'font.woff2');
+        });
+    } else {
+        verifyStatus('font', base + 'font.woff2');
+    }
+
+    // ---- JavaScript-only APIs: no plain-markup equivalent exists. ----
+
+    // Fetch API
+    (function () {
+        var id = 'fetch', url = base + 'fetch-data.json';
+        addRow(apiBody, id, 'Fetch API', url);
+        verifyStatus(id, url);
+    })();
+
+    // XMLHttpRequest
+    (function () {
+        var id = 'xhr', url = base + 'xhr-data.json';
+        addRow(apiBody, id, 'XMLHttpRequest', url);
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onload = function () {
+            if (xhr.status === 404) {
+                setStatus(id, '404 confirmed (HTTP ' + xhr.status + ')', true);
+            } else {
+                setStatus(id, 'unexpected HTTP ' + xhr.status, false);
+            }
+        };
+        xhr.onerror = function () { verifyStatus(id, url); };
+        xhr.send();
+    })();
+
+    // Dynamic import
+    (function () {
+        var id = 'import', url = base + 'module.js';
+        addRow(apiBody, id, 'Dynamic import()', url);
+        import(url).then(function () {
+            setStatus(id, 'unexpectedly loaded', false);
+        }).catch(function () {
+            verifyStatus(id, url);
+        });
+    })();
+
+    // Web Worker
+    (function () {
+        var id = 'worker', url = base + 'worker.js';
+        addRow(apiBody, id, 'Web Worker', url);
+        try {
+            var worker = new Worker(url);
+            worker.onerror = function () { verifyStatus(id, url); };
+            worker.onmessage = function () { setStatus(id, 'unexpectedly loaded', false); };
+        } catch (e) {
+            verifyStatus(id, url);
+        }
+    })();
+})();
+</script>
+</body>
+</html>
