@@ -4,41 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shadow Root</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1em; }
+  </style>
 </head>
 <body>
-  <h3>Open Shadow Root</h3>
+  <h3>1. Open Shadow Root</h3>
   <div id="open-host"></div>
 
-  <h3>Closed Shadow Root</h3>
+  <h3>2. Closed Shadow Root</h3>
   <div id="closed-host"></div>
 
+  <h3>3. Closed Shadow Root &rarr; iframe &rarr; button + Closed Shadow Root</h3>
+  <div id="closed-frame-host"></div>
+
+  <script src="controls.js"></script>
   <script>
-    (function() {
-      function addControls(shadow) {
-        shadow.append(document.createElement('textarea'));
-        shadow.append(document.createElement('br'));
+    (function () {
+      addControls(attachShadowTo('open-host', 'open'));
+      addControls(attachShadowTo('closed-host', 'closed'));
 
-        const select = document.createElement('select');
-
-        const opt1 = document.createElement('option');
-        opt1.text = opt1.value = 'Option 1';
-        const opt2 = document.createElement('option');
-        opt2.text = opt2.value = 'Option 2';
-        const opt3 = document.createElement('option');
-        opt3.text = opt3.value = 'Option 3';
-
-        select.add(opt1);
-        select.add(opt2);
-        select.add(opt3);
-
-        shadow.append(select);
-      }
-
-      const openShadow = document.getElementById('open-host').attachShadow({ mode: 'open' });
-      addControls(openShadow);
-
-      const closedShadow = document.getElementById('closed-host').attachShadow({ mode: 'closed' });
-      addControls(closedShadow);
+      const iframe = document.createElement('iframe');
+      iframe.src = 'frame.html';
+      iframe.title = 'Frame with a button and a closed shadow root';
+      iframe.style.cssText = 'width: 400px; height: 200px; border: 1px solid #999;';
+      attachShadowTo('closed-frame-host', 'closed').append(iframe);
     })();
   </script>
 </body>
